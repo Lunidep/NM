@@ -23,7 +23,7 @@ hy = ly / ny
 tau = 0.01
 
 
-def ThreeDiag(A, b):
+def three_diag(A, b):
     n = len(A)
 
     v = [0 for _ in range(n)]
@@ -43,35 +43,41 @@ def ThreeDiag(A, b):
     return np.array(x)
 
 
-def AlternatingDirectionsMethod():
+def alternating_directions_method():
     x = np.arange(0, lx + hx, hx)
     y = np.arange(0, ly + hy, hy)
     t = np.arange(0, np.pi + tau, tau)
     res = np.zeros((len(t), len(x), len(y)))
 
+    # Инициализация начального условия
     for x_id in range(len(x)):
         for y_id in range(len(y)):
             res[0][x_id][y_id] = psi(x[x_id], y[y_id])
 
+    # Решение уравнения методом поочередных направлений
     for t_id in range(1, len(t)):
         U_halftime = np.zeros((len(x), len(y)))
 
+        # Условия на границах по x
         for x_id in range(len(x)):
             res[t_id][x_id][0] = phi_3(x[x_id], t[t_id])
             res[t_id][x_id][-1] = phi_4(x[x_id], t[t_id])
             U_halftime[x_id][0] = phi_3(x[x_id], t[t_id] - tau / 2)
             U_halftime[x_id][-1] = phi_4(x[x_id], t[t_id] - tau / 2)
 
+        # Условия на границах по y
         for y_id in range(len(y)):
             res[t_id][0][y_id] = phi_1(y[y_id], t[t_id])
             res[t_id][-1][y_id] = phi_2(y[y_id], t[t_id])
             U_halftime[0][y_id] = phi_1(y[y_id], t[t_id] - tau / 2)
             U_halftime[-1][y_id] = phi_2(y[y_id], t[t_id] - tau / 2)
 
+        # внутренних узлов сетки по y
         for y_id in range(1, len(y) - 1):
             A = np.zeros((len(x) - 2, len(x) - 2))
             b = np.zeros((len(x) - 2))
 
+            # Формирование матрицы коэффициентов для метода прогонки
             A[0][0] = 2 * hx ** 2 * hy ** 2 + 2 * a * tau * hy ** 2
             A[0][1] = -a * tau * hy ** 2
             for i in range(1, len(A) - 1):
@@ -81,6 +87,7 @@ def AlternatingDirectionsMethod():
             A[-1][-2] = -a * tau * hy ** 2
             A[-1][-1] = 2 * hx ** 2 * hy ** 2 + 2 * a * tau * hy ** 2
 
+            # Формирование правой части для метода прогонки
             for x_id in range(1, len(x) - 1):
                 b[x_id - 1] = (
                         res[t_id - 1][x_id][y_id - 1] * a * tau * hx ** 2
@@ -89,8 +96,9 @@ def AlternatingDirectionsMethod():
                 )
             b[0] -= (-a * tau * hy ** 2) * phi_1(y[y_id], t[t_id] - tau / 2)
             b[-1] -= (-a * tau * hy ** 2) * phi_2(y[y_id], t[t_id] - tau / 2)
-            U_halftime[1:-1, y_id] = np.array(ThreeDiag(A, b))
+            U_halftime[1:-1, y_id] = np.array(three_diag(A, b))
 
+        # То же самое для x
         for x_id in range(1, len(x) - 1):
             A = np.zeros((len(y) - 2, len(y) - 2))
             b = np.zeros((len(y) - 2))
@@ -112,21 +120,23 @@ def AlternatingDirectionsMethod():
                 )
             b[0] -= (-a * tau * hx ** 2) * phi_3(x[x_id], t[t_id])
             b[-1] -= (-a * tau * hx ** 2) * phi_4(x[x_id], t[t_id])
-            res[t_id][x_id][1:-1] = ThreeDiag(A, b)
+            res[t_id][x_id][1:-1] = three_diag(A, b)
 
     return res
 
 
-def FractionalStepsMethod():
+def fractional_steps_method():
     x = np.arange(0, lx + hx, hx)
     y = np.arange(0, ly + hy, hy)
     t = np.arange(0, np.pi + tau, tau)
     res = np.zeros((len(t), len(x), len(y)))
 
+    # Инициализация начального условия
     for x_id in range(len(x)):
         for y_id in range(len(y)):
             res[0][x_id][y_id] = psi(x[x_id], y[y_id])
 
+    # Решение уравнения методом дробных шагов
     for t_id in range(1, len(t)):
         U_halftime = np.zeros((len(x), len(y)))
 
@@ -159,7 +169,7 @@ def FractionalStepsMethod():
                 b[x_id - 1] = res[t_id - 1][x_id][y_id] * hx ** 2
             b[0] -= (-a * tau) * phi_1(y[y_id], t[t_id] - tau / 2)
             b[-1] -= (-a * tau) * phi_2(y[y_id], t[t_id] - tau / 2)
-            U_halftime[1:-1, y_id] = np.array(ThreeDiag(A, b))
+            U_halftime[1:-1, y_id] = np.array(three_diag(A, b))
 
         for x_id in range(1, len(x) - 1):
             A = np.zeros((len(y) - 2, len(y) - 2))
@@ -178,7 +188,7 @@ def FractionalStepsMethod():
                 b[y_id - 1] = U_halftime[x_id][y_id] * hy ** 2
             b[0] -= (-a * tau) * phi_3(x[x_id], t[t_id])
             b[-1] -= (-a * tau) * phi_4(x[x_id], t[t_id])
-            res[t_id][x_id][1:-1] = ThreeDiag(A, b)
+            res[t_id][x_id][1:-1] = three_diag(A, b)
 
     return res
 
@@ -190,15 +200,15 @@ def AnalyticSolution():
     return np.array([np.array([np.array([analytic_solution(xi, yi, ti) for yi in y]) for xi in x]) for ti in t])
 
 
+
 ANALYTIC_SOLUTION_METHOD_NAME = 'Analytic'
 answers = {
     ANALYTIC_SOLUTION_METHOD_NAME: AnalyticSolution(),
-    'Alternating Directions': AlternatingDirectionsMethod(),
-    'Fractional Steps': FractionalStepsMethod(),
+    'Alternating Directions': alternating_directions_method(),
+    'Fractional Steps': fractional_steps_method(),
 }
 
-
-def GetError(numeric):
+def mae(numeric):
     analytic_solution = answers[ANALYTIC_SOLUTION_METHOD_NAME]
     return np.array([np.abs(numeric_el - analytic_el).mean() for numeric_el, analytic_el in zip(numeric, analytic_solution)]).max()
 
@@ -230,7 +240,7 @@ def plot_results_y(ax, cur_y, timestamp=0):
     ax.grid()
     ax.legend(loc='best')
 
-def plot_errors_from_y(ax, timestamp=0):    
+def plot_errors_from_y(ax, timestamp=0):
     analytic_solution = answers[ANALYTIC_SOLUTION_METHOD_NAME]
     analytic_xn = np.array([[analytic_solution[timestamp][j][i] for j in range(len(x))] for i in range(len(y))])
 
@@ -251,7 +261,7 @@ def plot_errors_from_y(ax, timestamp=0):
     ax.set_xlabel('x')
     ax.set_ylabel('Max abs error')
 
-def plot_errors_from_x(ax, timestamp=0):    
+def plot_errors_from_x(ax, timestamp=0):
     analytic_solution = answers[ANALYTIC_SOLUTION_METHOD_NAME]
     analytic_yn = np.array([analytic_solution[timestamp][i] for i in range(len(x))])
 
@@ -272,24 +282,29 @@ def plot_errors_from_x(ax, timestamp=0):
     ax.set_xlabel('y')
     ax.set_ylabel('Max abs error')
 
-def plot_errors_from_t(ax):    
-    analytic_solution = answers[ANALYTIC_SOLUTION_METHOD_NAME]
-
+def calculate_mae(answer, analytic_solution):
     x = np.arange(0, lx + hx, hx)
     y = np.arange(0, ly + hy, hy)
+    t = np.arange(0, np.pi + tau, tau)
+
+    errors = []
+    for ti in range(len(t)):
+        mx = -1
+        for xi in range(len(x)):
+            for yi in range(len(y)):
+                mx = max(np.abs(answer[ti][xi][yi] - analytic_solution[ti][xi][yi]).mean(), mx)
+        errors.append(mx)
+    return errors
+
+def plot_errors_from_t(ax):
+    analytic_solution = answers[ANALYTIC_SOLUTION_METHOD_NAME]
+
     t = np.arange(0, np.pi + tau, tau)
 
     for method_name, answer in answers.items():
         if method_name == ANALYTIC_SOLUTION_METHOD_NAME:
             continue
-        errors = []
-        for ti in range(len(t)):
-            mx = -1
-            for xi in range(len(x)):
-                for yi in range(len(y)):
-                    mx = max(np.abs(answer[ti][xi][yi] - analytic_solution[ti][xi][yi]).mean(), mx)
-            errors.append(mx)
-
+        errors = calculate_mae(answer, analytic_solution)
         ax.plot(t, errors, label=method_name)
 
     ax.grid()
@@ -298,11 +313,12 @@ def plot_errors_from_t(ax):
     ax.set_ylabel('Max abs error')
 
 
-fig, ax = plt.subplots(nrows=2, ncols=2) 
+fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(12, 10))
 timestamp = 5
 plot_results_x(ax[0][0], cur_x=lx/2, timestamp=timestamp)
 plot_results_y(ax[0][1], cur_y=ly/2, timestamp=timestamp)
 plot_errors_from_t(ax[1][0])
-# plot_errors_from_x(ax[1][1], timestamp=timestamp)
+plot_errors_from_x(ax[1][1], timestamp=timestamp)
 
+plt.tight_layout()
 plt.show()

@@ -56,6 +56,6 @@ if __name__ == '__main__':
     print(f'Шаг = {h2}: занчение интеграла = {int_simpson_h2}')
 
     print('Метод Рунге-Ромберга')
-    print(f'Погрешность прямоугольников = {runge_romberg_method(h1, h2, int_rectangle_h1, int_rectangle_h2, 3)}')
+    print(f'Погрешность прямоугольников = {runge_romberg_method(h1, h2, int_rectangle_h1, int_rectangle_h2, 3)}')//уточненное значение
     print(f'Погрешность трапеций = {runge_romberg_method(h1, h2, int_trapeze_h1, int_trapeze_h2, 3)}')
     print(f'Погрешность Симпсона = {runge_romberg_method(h1, h2, int_simpson_h1, int_simpson_h2, 3)}')

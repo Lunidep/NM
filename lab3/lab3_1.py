@@ -7,11 +7,11 @@ def lagrange_interpolation(x, y, test_point):
     assert len(x) == len(y)
     polynom_str = 'L(x) ='
     polynom_test_value = 0
-    for i in range(len(x)): # СУММА
+    for i in range(len(x)): # сумма
         cur_enum_str = ''
         cur_enum_test = 1
         cur_denom = 1
-        for j in range(len(x)): # ПРОИЗВЕДЕНИЕ
+        for j in range(len(x)): # произведение
             if i == j:
                 continue
             cur_enum_str += f'(x-{x[j]:.2f})' # строка многочлена для текущего х

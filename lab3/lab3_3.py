@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 
 from lab1.lab1_1 import LU_decompose, solve_system
 
-
+#подбираем
+#строим матрицу и столбец
 def least_squares(x, y, n):
     assert len(x) == len(y)
     A = []

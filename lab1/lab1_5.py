@@ -87,7 +87,7 @@ def get_eigen_values_QR(A, eps):
 if __name__ == '__main__':
 
     A = [[-6, 1, -4],
-         [-6, 8, -2],
+         [-6, 0, -2], #complex case
          [2, -9, 5]]
 
     A = np.array(A, dtype='float')
